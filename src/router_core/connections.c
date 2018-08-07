@@ -808,7 +808,10 @@ static void qdr_link_cleanup_CT(qdr_core_t *core, qdr_connection_t *conn, qdr_li
         if (link->link_type == QD_LINK_CONTROL)
             core->control_links_by_mask_bit[conn->mask_bit] = 0;
         if (link->link_type == QD_LINK_ROUTER)
-            core->data_links_by_mask_bit[conn->mask_bit] = 0;
+            for ( int priority = 0; priority < QDR_N_PRIORITIES; ++ priority )
+                if ( link == core->data_links_by_mask_bit[conn->mask_bit].links[priority] )
+                    core->data_links_by_mask_bit[conn->mask_bit].links[priority] = 0;
+
     }
 
     //
@@ -1258,8 +1261,11 @@ static void qdr_connection_opened_CT(qdr_core_t *core, qdr_action_t *action, boo
                 //
                 (void) qdr_create_link_CT(core, conn, QD_LINK_CONTROL, QD_INCOMING, qdr_terminus_router_control(), qdr_terminus_router_control());
                 (void) qdr_create_link_CT(core, conn, QD_LINK_CONTROL, QD_OUTGOING, qdr_terminus_router_control(), qdr_terminus_router_control());
-                (void) qdr_create_link_CT(core, conn, QD_LINK_ROUTER,  QD_INCOMING, qdr_terminus_router_data(), qdr_terminus_router_data());
-                (void) qdr_create_link_CT(core, conn, QD_LINK_ROUTER,  QD_OUTGOING, qdr_terminus_router_data(), qdr_terminus_router_data());
+
+                for ( int priority = 0; priority < QDR_N_PRIORITIES; ++ priority ) {
+                  (void) qdr_create_link_CT(core, conn, QD_LINK_ROUTER,  QD_INCOMING, qdr_terminus_router_data(), qdr_terminus_router_data());
+                  (void) qdr_create_link_CT(core, conn, QD_LINK_ROUTER,  QD_OUTGOING, qdr_terminus_router_data(), qdr_terminus_router_data());
+                }
             }
         }
 
@@ -1588,10 +1594,14 @@ static void qdr_link_inbound_first_attach_CT(qdr_core_t *core, qdr_action_t *act
             qdr_link_outbound_second_attach_CT(core, link, source, target);
             break;
 
-        case QD_LINK_ROUTER:
-            core->data_links_by_mask_bit[conn->mask_bit] = link;
-            qdr_link_outbound_second_attach_CT(core, link, source, target);
-            break;
+        case QD_LINK_ROUTER: {
+              // This is an outgoing inter-router link. Store it in the next-higher priority slot.
+              int next_slot = core->data_links_by_mask_bit[conn->mask_bit].count ++;
+              assert ( next_slot < QDR_N_PRIORITIES );
+              core->data_links_by_mask_bit[conn->mask_bit].links[next_slot] = link;
+              qdr_link_outbound_second_attach_CT(core, link, source, target);
+              break;
+          }
         }
     }
 }
@@ -1687,9 +1697,13 @@ static void qdr_link_inbound_second_attach_CT(qdr_core_t *core, qdr_action_t *ac
             core->control_links_by_mask_bit[conn->mask_bit] = link;
             break;
 
-        case QD_LINK_ROUTER:
-            core->data_links_by_mask_bit[conn->mask_bit] = link;
-            break;
+        case QD_LINK_ROUTER: {
+                // This is an outgoing inter-router link. Store it in the next-higher priority slot.
+                int next_slot = core->data_links_by_mask_bit[conn->mask_bit].count ++;
+                assert ( next_slot < QDR_N_PRIORITIES );
+                core->data_links_by_mask_bit[conn->mask_bit].links[next_slot] = link;
+                break;
+            }
         }
     }
 
@@ -1804,7 +1818,9 @@ static void qdr_link_inbound_detach_CT(qdr_core_t *core, qdr_action_t *action, b
 
         case QD_LINK_ROUTER:
             if (conn->role == QDR_ROLE_INTER_ROUTER)
-                core->data_links_by_mask_bit[conn->mask_bit] = 0;
+                for ( int priority = 0; priority < QDR_N_PRIORITIES; ++ priority )
+                    if ( link == core->data_links_by_mask_bit[conn->mask_bit].links[priority] )
+                        core->data_links_by_mask_bit[conn->mask_bit].links[priority] = 0;
             break;
         }
     }
