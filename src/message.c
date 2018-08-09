@@ -721,7 +721,7 @@ static qd_field_location_t *qd_message_properties_field(qd_message_t *msg, qd_me
 
 
 // get the field location of a field in the message header if it exists, else 0.
-static qd_field_location_t * qd_message_header_field ( qd_message_t *msg, qd_message_field_t field )
+static qd_field_location_t * qd_message_header_field(qd_message_t *msg, qd_message_field_t field)
 {
     int first_header_field = QD_FIELD_DURABLE,
         last_header_field  = QD_FIELD_DELIVERY_COUNT;
@@ -733,8 +733,8 @@ static qd_field_location_t * qd_message_header_field ( qd_message_t *msg, qd_mes
         (intptr_t) &((qd_message_content_t *)0)->field_first_acquirer,
         (intptr_t) &((qd_message_content_t *)0)->field_delivery_count
     };
-    if ( ! (first_header_field <= field && field <= last_header_field) ) {
-        assert ( 0 );
+    if (!(first_header_field <= field && field <= last_header_field)) {
+        assert(0);
         return 0;
     }
 
@@ -1094,22 +1094,22 @@ qd_iterator_pointer_t qd_message_cursor(qd_message_pvt_t *in_msg)
     return msg->cursor;
 }
 
-static void message_set_priority ( qd_message_t * in_msg, uint8_t priority )
+static void message_set_priority(qd_message_t *in_msg, uint8_t priority)
 {
-    qd_message_pvt_t * msg = (qd_message_pvt_t*) in_msg;
+    qd_message_pvt_t     *msg     = (qd_message_pvt_t*) in_msg;
     msg->content->priority = priority < QDR_N_PRIORITIES ? priority : QDR_N_PRIORITIES - 1;
 }
 
-uint8_t qd_message_get_priority ( qd_message_t * in_msg )
+uint8_t qd_message_get_priority(qd_message_t *in_msg)
 {
     qd_message_pvt_t * msg = (qd_message_pvt_t*) in_msg;
 
     uint8_t  priority = 0;
-    qd_iterator_t * priority_iterator = qd_message_field_iterator ( in_msg, QD_FIELD_PRIORITY );
-    if ( priority_iterator ) {
-        if ( qd_iterator_remaining ( priority_iterator ) > 0) {
-            priority = qd_iterator_uint8 ( priority_iterator );
-            message_set_priority ( in_msg, priority );
+    qd_iterator_t *priority_iterator = qd_message_field_iterator(in_msg, QD_FIELD_PRIORITY);
+    if (priority_iterator) {
+        if (qd_iterator_remaining(priority_iterator) > 0) {
+            priority = qd_iterator_uint8(priority_iterator);
+            message_set_priority(in_msg, priority);
         }
     }
 

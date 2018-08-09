@@ -325,7 +325,7 @@ qd_iterator_t *qd_iterator_dup(const qd_iterator_t *iter);
  */
 char* qd_iterator_strncpy(qd_iterator_t *iter, char* buffer, int n);
 
-uint8_t  qd_iterator_uint8  ( qd_iterator_t * iter );
+uint8_t qd_iterator_uint8(qd_iterator_t* iter);
 
 /**
  * Return the contents of this iter into an iovec structure.  This is used in a

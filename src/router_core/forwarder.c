@@ -409,7 +409,7 @@ int qdr_forward_closest_CT(qdr_core_t      *core,
 {
     qdr_link_t     *out_link;
     qdr_delivery_t *out_delivery;
-    uint8_t priority = qd_message_get_priority ( msg );
+    uint8_t priority = qd_message_get_priority(msg);
 
     //
     // Forward to an in-process subscriber if there is one.

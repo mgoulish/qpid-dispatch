@@ -205,7 +205,7 @@ const char *qdr_connection_get_tenant_space(const qdr_connection_t *conn, int *l
 int qdr_connection_process(qdr_connection_t *conn)
 {
     qdr_connection_work_list_t  work_list;
-    qdr_link_ref_list_t         links_with_work [ QDR_N_PRIORITIES ];
+    qdr_link_ref_list_t         links_with_work[QDR_N_PRIORITIES];
     qdr_core_t                 *core = conn->core;
 
     qdr_link_ref_t *ref;
@@ -216,7 +216,7 @@ int qdr_connection_process(qdr_connection_t *conn)
 
     sys_mutex_lock(conn->work_lock);
     DEQ_MOVE(conn->work_list, work_list);
-    for ( int priority = 0; priority < QDR_N_PRIORITIES; ++ priority ) {
+    for (int priority = 0; priority < QDR_N_PRIORITIES; ++ priority) {
         DEQ_MOVE(conn->links_with_work[priority], links_with_work[priority]);
     }
     sys_mutex_unlock(conn->work_lock);
@@ -244,7 +244,7 @@ int qdr_connection_process(qdr_connection_t *conn)
     }
 
     // Process the links_with_work array from highest to lowest priority.
-    for ( int priority = QDR_N_PRIORITIES - 1; priority >= 0; -- priority ) {
+    for (int priority = QDR_N_PRIORITIES - 1; priority >= 0; -- priority) {
         do {
             qdr_link_work_t *link_work;
             free_link = false;
@@ -816,7 +816,7 @@ static void qdr_link_cleanup_CT(qdr_core_t *core, qdr_connection_t *conn, qdr_li
         if (link->link_type == QD_LINK_CONTROL)
             core->control_links_by_mask_bit[conn->mask_bit] = 0;
         if (link->link_type == QD_LINK_ROUTER)
-            for ( int priority = 0; priority < QDR_N_PRIORITIES; ++ priority )
+            for (int priority = 0; priority < QDR_N_PRIORITIES; ++ priority)
                 if ( link == core->data_links_by_mask_bit[conn->mask_bit].links[priority] )
                     core->data_links_by_mask_bit[conn->mask_bit].links[priority] = 0;
 
@@ -852,7 +852,7 @@ static void qdr_link_cleanup_CT(qdr_core_t *core, qdr_connection_t *conn, qdr_li
     //
     qdr_del_link_ref(&conn->links, link, QDR_LINK_LIST_CLASS_CONNECTION);
     sys_mutex_lock(conn->work_lock);
-    for ( int priority = 0; priority < QDR_N_PRIORITIES; ++ priority ) {
+    for (int priority = 0; priority < QDR_N_PRIORITIES; ++ priority) {
         qdr_del_link_ref(conn->links_with_work + priority, link, QDR_LINK_LIST_CLASS_WORK);
     }
     sys_mutex_unlock(conn->work_lock);
@@ -1272,7 +1272,7 @@ static void qdr_connection_opened_CT(qdr_core_t *core, qdr_action_t *action, boo
                 (void) qdr_create_link_CT(core, conn, QD_LINK_CONTROL, QD_INCOMING, qdr_terminus_router_control(), qdr_terminus_router_control());
                 (void) qdr_create_link_CT(core, conn, QD_LINK_CONTROL, QD_OUTGOING, qdr_terminus_router_control(), qdr_terminus_router_control());
 
-                for ( int priority = 0; priority < QDR_N_PRIORITIES; ++ priority ) {
+                for (int priority = 0; priority < QDR_N_PRIORITIES; ++ priority) {
                   (void) qdr_create_link_CT(core, conn, QD_LINK_ROUTER,  QD_INCOMING, qdr_terminus_router_data(), qdr_terminus_router_data());
                   (void) qdr_create_link_CT(core, conn, QD_LINK_ROUTER,  QD_OUTGOING, qdr_terminus_router_data(), qdr_terminus_router_data());
                 }
@@ -1331,7 +1331,7 @@ static void qdr_connection_closed_CT(qdr_core_t *core, qdr_action_t *action, boo
     // Remove the references in the links_with_work list
     //
     qdr_link_ref_t *link_ref;
-    for ( int priority = 0; priority < QDR_N_PRIORITIES; ++ priority ) {
+    for (int priority = 0; priority < QDR_N_PRIORITIES; ++ priority) {
         link_ref = DEQ_HEAD(conn->links_with_work[priority]);
         while (link_ref) {
             qdr_del_link_ref(conn->links_with_work + priority, link_ref->link, QDR_LINK_LIST_CLASS_WORK);
@@ -1611,7 +1611,7 @@ static void qdr_link_inbound_first_attach_CT(qdr_core_t *core, qdr_action_t *act
         case QD_LINK_ROUTER: {
               // This is an outgoing inter-router link. Store it in the next-higher priority slot.
               int next_slot = core->data_links_by_mask_bit[conn->mask_bit].count ++;
-              assert ( next_slot < QDR_N_PRIORITIES );
+              assert(next_slot < QDR_N_PRIORITIES);
               core->data_links_by_mask_bit[conn->mask_bit].links[next_slot] = link;
               qdr_link_outbound_second_attach_CT(core, link, source, target);
               break;
@@ -1714,7 +1714,7 @@ static void qdr_link_inbound_second_attach_CT(qdr_core_t *core, qdr_action_t *ac
         case QD_LINK_ROUTER: {
                 // This is an outgoing inter-router link. Store it in the next-higher priority slot.
                 int next_slot = core->data_links_by_mask_bit[conn->mask_bit].count ++;
-                assert ( next_slot < QDR_N_PRIORITIES );
+                assert(next_slot < QDR_N_PRIORITIES);
                 core->data_links_by_mask_bit[conn->mask_bit].links[next_slot] = link;
                 break;
             }
@@ -1832,8 +1832,8 @@ static void qdr_link_inbound_detach_CT(qdr_core_t *core, qdr_action_t *action, b
 
         case QD_LINK_ROUTER:
             if (conn->role == QDR_ROLE_INTER_ROUTER)
-                for ( int priority = 0; priority < QDR_N_PRIORITIES; ++ priority )
-                    if ( link == core->data_links_by_mask_bit[conn->mask_bit].links[priority] )
+                for (int priority = 0; priority < QDR_N_PRIORITIES; ++ priority)
+                    if (link == core->data_links_by_mask_bit[conn->mask_bit].links[priority])
                         core->data_links_by_mask_bit[conn->mask_bit].links[priority] = 0;
             break;
         }

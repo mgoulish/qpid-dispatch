@@ -411,7 +411,7 @@ bool qd_message_aborted(const qd_message_t *msg);
  */
 void qd_message_set_aborted(const qd_message_t *msg, bool aborted);
 
-uint8_t qd_message_get_priority ( qd_message_t *msg );
+uint8_t qd_message_get_priority(qd_message_t *msg);
 
 ///@}
 
