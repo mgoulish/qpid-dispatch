@@ -728,26 +728,12 @@ char* qd_iterator_strncpy(qd_iterator_t *iter, char* buffer, int n)
 }
 
 
-uint8_t qd_iterator_uint8 ( qd_iterator_t *iter ) {
+uint8_t qd_iterator_uint8(qd_iterator_t *iter)
+{
     qd_iterator_reset(iter);
-    if ( qd_iterator_end(iter) )
+    if (qd_iterator_end(iter))
         return 0;
     return (uint8_t) qd_iterator_octet(iter);
-}
-
-
-uint64_t qd_iterator_uint64 ( qd_iterator_t *iter ) {
-    qd_iterator_reset(iter);
-
-    uint64_t value = 0;
-    while ( 1 ) {
-        if ( qd_iterator_end(iter) )
-            break;
-        value *= 10;
-        value += qd_iterator_octet(iter);
-    }
-
-    return value;
 }
 
 
