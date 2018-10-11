@@ -217,7 +217,7 @@ int qdr_connection_process(qdr_connection_t *conn)
 
     sys_mutex_lock(conn->work_lock);
     DEQ_MOVE(conn->work_list, work_list);
-    for (int priority = 0; priority < QDR_N_PRIORITIES; ++ priority) {
+    for (int priority = 0; priority <= QDR_MAX_PRIORITY; ++ priority) {
         DEQ_MOVE(conn->links_with_work[priority], links_with_work[priority]);
 
         //
@@ -255,7 +255,7 @@ int qdr_connection_process(qdr_connection_t *conn)
     }
 
     // Process the links_with_work array from highest to lowest priority.
-    for (int priority = QDR_N_PRIORITIES - 1; priority >= 0; -- priority) {
+    for (int priority = QDR_MAX_PRIORITY; priority >= 0; -- priority) {
         do {
             qdr_link_work_t *link_work;
             free_link = false;
@@ -1001,7 +1001,7 @@ static void qdr_link_outbound_second_attach_CT(qdr_core_t *core, qdr_link_t *lin
 }
 
 
-qd_address_treatment_t qdr_treatment_for_address_CT(qdr_core_t *core, qdr_connection_t *conn, qd_iterator_t *iter, int *in_phase, int *out_phase)
+qd_address_treatment_t qdr_treatment_for_address_CT(qdr_core_t *core, qdr_connection_t *conn, qd_iterator_t *iter, int *in_phase, int *out_phase, int * priority)
 {
     qdr_address_config_t *addr = 0;
     qd_iterator_view_t old_view = qd_iterator_get_view(iter);
@@ -1015,7 +1015,7 @@ qd_address_treatment_t qdr_treatment_for_address_CT(qdr_core_t *core, qdr_connec
 
     if (in_phase)  *in_phase  = addr ? addr->in_phase  : 0;
     if (out_phase) *out_phase = addr ? addr->out_phase : 0;
-
+    if (priority)  *priority  = addr ? addr->priority  : -1;
 
     return addr ? addr->treatment : core->qd->default_treatment;
 }
@@ -1227,7 +1227,8 @@ static qdr_address_t *qdr_lookup_terminus_address_CT(qdr_core_t       *core,
     int in_phase;
     int out_phase;
     int addr_phase;
-    qd_address_treatment_t treat = qdr_treatment_for_address_CT(core, conn, iter, &in_phase, &out_phase);
+    int priority;
+    qd_address_treatment_t treat = qdr_treatment_for_address_CT(core, conn, iter, &in_phase, &out_phase, &priority);
 
     qd_iterator_reset_view(iter, ITER_VIEW_ADDRESS_HASH);
     qd_iterator_annotate_prefix(iter, '\0'); // Cancel previous override
@@ -1255,6 +1256,9 @@ static qdr_address_t *qdr_lookup_terminus_address_CT(qdr_core_t       *core,
 
     if (!!addr && addr->core_endpoint != 0)
         *core_endpoint = true;
+
+    if (addr)
+        addr->priority = priority;
 
     return addr;
 }
@@ -1465,7 +1469,7 @@ static void qdr_attach_link_data_CT(qdr_core_t *core, qdr_connection_t *conn, qd
         // As inter-router links are attached to this connection, they
         // are assigned priorities in the order in which they are attached.
         int next_slot = core->data_links_by_mask_bit[conn->mask_bit].count ++;
-        if (next_slot >= QDR_N_PRIORITIES) {
+        if (next_slot > QDR_MAX_PRIORITY) {
             qd_log(core->log, QD_LOG_ERROR, "Attempt to attach too many inter-router links for priority sheaf.");
             return;
         }
